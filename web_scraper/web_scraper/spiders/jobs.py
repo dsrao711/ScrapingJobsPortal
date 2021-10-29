@@ -2,10 +2,16 @@ import scrapy
 from ..items import WebScraperItem
 
 class JobsSpider(scrapy.Spider):
+    
     name = 'jobs'
-    start_urls = ['https://in.indeed.com/jobs?q=software%20developer&l&vjk=8a1af5307c18bdec']
     page_number = 2
     
+    def __init__(self, job_title, **kwargs):
+        # Input from user for designation
+        self.job_title = job_title
+        self.start_urls = ["https://in.indeed.com/jobs?q={}&start={}".format(
+            job_title.lower().rstrip().replace(" ", "-"), i*10) for i in range(0, 20)]
+        super().__init__(**kwargs)
 
     def parse(self, response):
         
@@ -31,8 +37,9 @@ class JobsSpider(scrapy.Spider):
             
         next_page = 'https://in.indeed.com/jobs?q=software%20developer&start=' + str((JobsSpider.page_number)*10) +'&vjk=ff3041e9314624a9'
         
+        # Scraping 20 pages
+        
         if JobsSpider.page_number <= 19:
             JobsSpider.page_number += 1
             print("Page number ..." , JobsSpider.page_number)
-            print(next_page)
             yield response.follow(next_page , callback = self.parse)
